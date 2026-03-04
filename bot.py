@@ -1,5 +1,6 @@
 import os
 import json
+from datetime import datetime
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 import nest_asyncio
@@ -23,6 +24,21 @@ def carregar_contas():
         return json.load(file)
 
 contas = carregar_contas()
+
+# ---------- FUNÇÃO PARA VERIFICAR CONTAS VENCIDAS ----------
+async def verificar_contas(app):
+    while True:
+        hoje = datetime.now().day  # Pega o dia atual
+
+        for c in contas:
+            if not c["pago"] and hoje >= c["dia"]:
+                # Envia uma mensagem se a conta ainda não foi paga e a data chegou ou passou
+                await app.bot.send_message(
+                    chat_id=CHAT_ID,
+                    text=f"⚠️ A conta '{c['nome']}' venceu ou vence hoje (dia {c['dia']})!"
+                )
+
+        await asyncio.sleep(60 * 60 * 6)  # Verifica a cada 6 horas
 
 # ---------- COMANDOS ----------
 async def listar(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -55,6 +71,9 @@ async def main():
     # Adicionando handlers para os comandos
     app.add_handler(CommandHandler("listar", listar))
     app.add_handler(CommandHandler("pago", pago))
+
+    # Inicia a verificação automática de contas vencidas
+    asyncio.create_task(verificar_contas(app))
 
     print("Bot rodando...")
     await app.run_polling()
