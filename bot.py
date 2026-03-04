@@ -6,6 +6,12 @@ from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
 # Pega TOKEN e CHAT_ID do Heroku (variáveis de ambiente)
+
+import os
+
+print("TOKEN RAW:", os.getenv("TOKEN"))
+print("CHAT_ID RAW:", os.getenv("CHAT_ID"))
+
 TOKEN = os.getenv("TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
 
