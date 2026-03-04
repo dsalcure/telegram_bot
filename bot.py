@@ -1,7 +1,10 @@
+import os
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
-import os
+import nest_asyncio
+import asyncio
 
+# Garantir que o TOKEN está configurado corretamente
 TOKEN = os.getenv("TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
 
@@ -38,16 +41,17 @@ async def pago(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # ---------- MAIN ----------
 async def main():
+    # Usando a nova API com ApplicationBuilder
     app = ApplicationBuilder().token(TOKEN).build()
 
+    # Adicionando handlers para os comandos
     app.add_handler(CommandHandler("listar", listar))
     app.add_handler(CommandHandler("pago", pago))
 
     print("Bot rodando...")
     await app.run_polling()
 
-import nest_asyncio
-import asyncio
-
+# Assegurando que o asyncio vai funcionar no Railway
 nest_asyncio.apply()
 asyncio.get_event_loop().run_until_complete(main())
+
