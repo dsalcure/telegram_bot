@@ -1,4 +1,5 @@
 import os
+import json
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 import nest_asyncio
@@ -15,6 +16,13 @@ if not CHAT_ID:
     raise ValueError("CHAT_ID não configurado no Railway")
 
 CHAT_ID = int(CHAT_ID.strip())
+
+# ---------- LER CONTAS DE JSON ----------
+def carregar_contas():
+    with open('contas.json', 'r') as file:
+        return json.load(file)
+
+contas = carregar_contas()
 
 # ---------- COMANDOS ----------
 async def listar(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -54,4 +62,3 @@ async def main():
 # Assegurando que o asyncio vai funcionar no Railway
 nest_asyncio.apply()
 asyncio.get_event_loop().run_until_complete(main())
-
