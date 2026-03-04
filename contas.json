@@ -1,0 +1,13 @@
+[
+    {"nome": "Mensalidade Zilton", "dia": 5, "pago": false},
+    {"nome": "Condomínio Citta", "dia": 10, "pago": false},
+    {"nome": "Cartão Nubank", "dia": 11, "pago": false},
+    {"nome": "Light Loja M", "dia": 16, "pago": false},
+    {"nome": "Condomínio Petrópolis", "dia": 20, "pago": false},    
+    {"nome": "IPTU_acordo_1", "dia": 25, "pago": false},
+    {"nome": "IPTU_acordo_2", "dia": 25, "pago": false},
+    {"nome": "Unimed", "dia": 30, "pago": false},
+    {"nome": "Condiminio Acordo", "dia": 30, "pago": false},
+    {"nome": "CREA parcela", "dia": 30, "pago": false},
+    {"nome": "teste", "dia": 4, "pago": false}
+]
