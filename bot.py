@@ -7,7 +7,7 @@ from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
 # Pega TOKEN e CHAT_ID do Heroku (variáveis de ambiente)
 TOKEN = os.getenv("TOKEN")
-CHAT_ID = int(os.getenv("CHAT_ID"))
+CHAT_ID = os.getenv("CHAT_ID")
 
 # ---------- FUNÇÕES PARA PERSISTÊNCIA ----------
 
