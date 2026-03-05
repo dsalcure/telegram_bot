@@ -5,15 +5,28 @@ from datetime import datetime
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
+# ---------- CONFIGURAÇÃO ----------
 TOKEN = os.getenv("TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
 
-# ---------- FUNÇÕES PARA PERSISTÊNCIA ----------
+# ---------- FUNÇÕES DE PERSISTÊNCIA ----------
 
 def carregar_dados():
+    """
+    Carrega o JSON de contas.
+    Suporta tanto lista antiga quanto novo formato com 'mes' e 'contas'.
+    """
     if os.path.exists("contas.json"):
         with open("contas.json", "r", encoding="utf-8") as f:
-            return json.load(f)
+            dados = json.load(f)
+
+        # Se for lista antiga, converte para novo formato automaticamente
+        if isinstance(dados, list):
+            return {"mes": datetime.now().month, "contas": dados}
+
+        return dados
+
+    # Arquivo não existe ainda
     return {"mes": datetime.now().month, "contas": []}
 
 def salvar_dados(dados):
@@ -26,35 +39,30 @@ contas = dados["contas"]
 # ---------- RESET MENSAL ----------
 
 def resetar_mes():
+    """Se mudou o mês, reseta todas as contas para não pagas"""
     mes_atual = datetime.now().month
-
     if dados["mes"] != mes_atual:
         for c in contas:
             c["pago"] = False
-
         dados["mes"] = mes_atual
         salvar_dados(dados)
         print("🔄 Reset mensal executado")
 
-# ---------- COMANDOS ----------
+# ---------- COMANDOS DO BOT ----------
 
 async def listar(update: Update, context: ContextTypes.DEFAULT_TYPE):
     mensagem = "📋 Contas:\n\n"
-
     for c in contas:
         status = "✅ Pago" if c["pago"] else "❌ Pendente"
         mensagem += f"{c['nome']} - dia {c['dia']} - {status}\n"
-
     await update.message.reply_text(mensagem)
 
 async def pago(update: Update, context: ContextTypes.DEFAULT_TYPE):
-
     if not context.args:
         await update.message.reply_text("Use: /pago NomeDaConta")
         return
 
     nome = " ".join(context.args)
-
     for c in contas:
         if c["nome"].lower() == nome.lower():
             c["pago"] = True
@@ -67,21 +75,17 @@ async def pago(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # ---------- VERIFICAÇÃO AUTOMÁTICA ----------
 
 async def verificar_contas(app):
-
     while True:
-
         agora = datetime.now()
         hoje = agora.day
         hora = agora.hour
 
-        # reset mensal
+        # Reset mensal automático
         resetar_mes()
 
-        # só enviar depois das 10h
+        # Só enviar alertas depois das 10h
         if hora >= 10:
-
             for c in contas:
-
                 if not c["pago"] and hoje >= c["dia"]:
                     await app.bot.send_message(
                         chat_id=CHAT_ID,
@@ -90,24 +94,21 @@ async def verificar_contas(app):
 
         await asyncio.sleep(60 * 60 * 6)  # verifica a cada 6 horas
 
-# ---------- MAIN ----------
+# ---------- INICIALIZAÇÃO DO BOT ----------
 
 async def main():
-
     app = ApplicationBuilder().token(TOKEN).build()
-
     app.add_handler(CommandHandler("listar", listar))
     app.add_handler(CommandHandler("pago", pago))
 
+    # Cria a tarefa de verificação automática
     asyncio.create_task(verificar_contas(app))
 
     print("Bot rodando...")
-
     await app.run_polling()
 
-# -------- EXECUÇÃO --------
+# ---------- EXECUÇÃO ----------
 
 import nest_asyncio
 nest_asyncio.apply()
-
 asyncio.get_event_loop().run_until_complete(main())
