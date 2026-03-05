@@ -78,7 +78,7 @@ async def pago(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def verificar_contas(app):
     while True:
-        BRASILIA = zoneinfo.ZoneInfo("America/Sao_Paulo")
+        BRASILIA = ZoneInfo("America/Sao_Paulo")
         agora = datetime.now(tz=BRASILIA)
         hoje = agora.day
         hora = agora.hour
