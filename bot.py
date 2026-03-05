@@ -50,6 +50,31 @@ def resetar_mes():
         salvar_dados(dados)
         print("🔄 Reset mensal executado")
 
+#------------------histórico-------
+def salvar_historico(nome, pago):
+    arquivo = "historico_pagamentos.json"
+
+    if os.path.exists(arquivo):
+        with open(arquivo, "r", encoding="utf-8") as f:
+            historico = json.load(f)
+    else:
+        historico = []
+
+    agora = datetime.now()
+
+    registro = {
+        "nome": nome,
+        "mes": agora.month,
+        "ano": agora.year,
+        "pago": pago
+    }
+
+    historico.append(registro)
+
+    with open(arquivo, "w", encoding="utf-8") as f:
+        json.dump(historico, f, ensure_ascii=False, indent=4)
+
+
 # ---------- COMANDOS DO BOT ----------
 
 async def listar(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -65,10 +90,15 @@ async def pago(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     nome = " ".join(context.args)
+
     for c in contas:
         if c["nome"].lower() == nome.lower():
             c["pago"] = True
             salvar_dados(dados)
+
+            # salva no histórico
+            salvar_historico(nome, True)
+
             await update.message.reply_text(f"✅ Conta {nome} marcada como paga!")
             return
 
