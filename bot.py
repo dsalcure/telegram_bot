@@ -82,6 +82,7 @@ async def verificar_contas(app):
         agora = datetime.now(tz=BRASILIA)
         hoje = agora.day
         hora = agora.hour
+        print(hora)
 
         # Reset mensal automático
         resetar_mes()
