@@ -1,4 +1,4 @@
-backports.zoneinfo==0.2.1
+backports.zoneinfo
 nest_asyncio
 python-telegram-bot==21.9.0
 
