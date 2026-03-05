@@ -92,7 +92,7 @@ async def verificar_contas(app):
                         text=f"⚠️ Conta {c['nome']} venceu ou vence hoje!"
                     )
 
-        await asyncio.sleep(60 * 60 * 6)  # verifica a cada 6 horas
+        await asyncio.sleep(60 * 60 * 2)  # verifica a cada 2 horas
 
 # ---------- INICIALIZAÇÃO DO BOT ----------
 
