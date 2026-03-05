@@ -3,6 +3,7 @@ import json
 import os
 from datetime import datetime
 from telegram import Update
+from zoneinfo import ZoneInfo
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
 # ---------- CONFIGURAÇÃO ----------
