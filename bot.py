@@ -1,54 +1,54 @@
-import os
+import asyncio
 import json
+import os
 from datetime import datetime
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
-import nest_asyncio
-import asyncio
 
-# Garantir que o TOKEN está configurado corretamente
 TOKEN = os.getenv("TOKEN")
-CHAT_ID = os.getenv("CHAT_ID")
+CHAT_ID = int(os.getenv("CHAT_ID"))
 
-if not TOKEN:
-    raise ValueError("TOKEN não configurado no Railway")
+# ---------- FUNÇÕES PARA PERSISTÊNCIA ----------
 
-if not CHAT_ID:
-    raise ValueError("CHAT_ID não configurado no Railway")
+def carregar_dados():
+    if os.path.exists("contas.json"):
+        with open("contas.json", "r", encoding="utf-8") as f:
+            return json.load(f)
+    return {"mes": datetime.now().month, "contas": []}
 
-CHAT_ID = int(CHAT_ID.strip())
+def salvar_dados(dados):
+    with open("contas.json", "w", encoding="utf-8") as f:
+        json.dump(dados, f, ensure_ascii=False, indent=4)
 
-# ---------- LER CONTAS DE JSON ----------
-def carregar_contas():
-    with open('contas.json', 'r') as file:
-        return json.load(file)
+dados = carregar_dados()
+contas = dados["contas"]
 
-contas = carregar_contas()
+# ---------- RESET MENSAL ----------
 
-# ---------- FUNÇÃO PARA VERIFICAR CONTAS VENCIDAS ----------
-async def verificar_contas(app):
-    while True:
-        hoje = datetime.now().day  # Pega o dia atual
+def resetar_mes():
+    mes_atual = datetime.now().month
 
+    if dados["mes"] != mes_atual:
         for c in contas:
-            if not c["pago"] and hoje >= c["dia"]:
-                # Envia uma mensagem se a conta ainda não foi paga e a data chegou ou passou
-                await app.bot.send_message(
-                    chat_id=CHAT_ID,
-                    text=f"⚠️ A conta '{c['nome']}' venceu ou vence hoje (dia {c['dia']})!"
-                )
+            c["pago"] = False
 
-        await asyncio.sleep(60 * 60 * 6)  # Verifica a cada 6 horas
+        dados["mes"] = mes_atual
+        salvar_dados(dados)
+        print("🔄 Reset mensal executado")
 
 # ---------- COMANDOS ----------
+
 async def listar(update: Update, context: ContextTypes.DEFAULT_TYPE):
     mensagem = "📋 Contas:\n\n"
+
     for c in contas:
         status = "✅ Pago" if c["pago"] else "❌ Pendente"
         mensagem += f"{c['nome']} - dia {c['dia']} - {status}\n"
+
     await update.message.reply_text(mensagem)
 
 async def pago(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
     if not context.args:
         await update.message.reply_text("Use: /pago NomeDaConta")
         return
@@ -58,26 +58,56 @@ async def pago(update: Update, context: ContextTypes.DEFAULT_TYPE):
     for c in contas:
         if c["nome"].lower() == nome.lower():
             c["pago"] = True
+            salvar_dados(dados)
             await update.message.reply_text(f"✅ Conta {nome} marcada como paga!")
             return
 
     await update.message.reply_text("Conta não encontrada.")
 
+# ---------- VERIFICAÇÃO AUTOMÁTICA ----------
+
+async def verificar_contas(app):
+
+    while True:
+
+        agora = datetime.now()
+        hoje = agora.day
+        hora = agora.hour
+
+        # reset mensal
+        resetar_mes()
+
+        # só enviar depois das 10h
+        if hora >= 10:
+
+            for c in contas:
+
+                if not c["pago"] and hoje >= c["dia"]:
+                    await app.bot.send_message(
+                        chat_id=CHAT_ID,
+                        text=f"⚠️ Conta {c['nome']} venceu ou vence hoje!"
+                    )
+
+        await asyncio.sleep(60 * 60 * 6)  # verifica a cada 6 horas
+
 # ---------- MAIN ----------
+
 async def main():
-    # Usando a nova API com ApplicationBuilder
+
     app = ApplicationBuilder().token(TOKEN).build()
 
-    # Adicionando handlers para os comandos
     app.add_handler(CommandHandler("listar", listar))
     app.add_handler(CommandHandler("pago", pago))
 
-    # Inicia a verificação automática de contas vencidas
     asyncio.create_task(verificar_contas(app))
 
     print("Bot rodando...")
+
     await app.run_polling()
 
-# Assegurando que o asyncio vai funcionar no Railway
+# -------- EXECUÇÃO --------
+
+import nest_asyncio
 nest_asyncio.apply()
+
 asyncio.get_event_loop().run_until_complete(main())
