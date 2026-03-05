@@ -86,7 +86,7 @@ async def verificar_contas(app):
         resetar_mes()
 
         # Só enviar alertas depois das 10h
-        if hora >= 10:
+        if hora >= 13:
             for c in contas:
                 if not c["pago"] and hoje >= c["dia"]:
                     await app.bot.send_message(
