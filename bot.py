@@ -76,7 +76,8 @@ async def pago(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def verificar_contas(app):
     while True:
-        agora = datetime.now()
+        BRASILIA = zoneinfo.ZoneInfo("America/Sao_Paulo")
+        agora = datetime.now(tz=BRASILIA)
         hoje = agora.day
         hora = agora.hour
 
@@ -92,9 +93,9 @@ async def verificar_contas(app):
                         text=f"⚠️ Conta {c['nome']} venceu ou vence hoje!"
                     )
 
-       # await asyncio.sleep(60 * 60 * 2)  # verifica a cada 2 horas
+        await asyncio.sleep(60 * 60 * 2)  # verifica a cada 2 horas
 
-        await asyncio.sleep(60) 
+        #await asyncio.sleep(60) 
 
 # ---------- INICIALIZAÇÃO DO BOT ----------
 
